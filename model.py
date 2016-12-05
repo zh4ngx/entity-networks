@@ -45,8 +45,8 @@ states = []
 
 with tf.variable_scope("RNN"):
     for time_step in range(SEQ_LEN - 1):
-        if time_step > 0:
-            tf.get_variable_scope().reuse_variables()
+        # if time_step > 0:
+        #     tf.get_variable_scope().reuse_variables()
 
         (cell_output, state) = rnn_cell(input_placeholder[:, time_step, :], state)
         states.append(state)
@@ -65,7 +65,8 @@ with tf.variable_scope("RNN"):
         [target_weights])
 
 optimizer = tf.train.AdamOptimizer(learning_rate_placeholder)
-train_step = optimizer.minimize(loss)
+grads_and_vars = optimizer.compute_gradients(loss)
+train_step = optimizer.apply_gradients(grads_and_vars)
 
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
@@ -83,8 +84,8 @@ for epoch_idx in range(NUM_EPOCH):
         break
     for batch_idx in range(NUM_BATCH):
         batch_input, batch_output = make_batch(random_inputs[batch_idx], random_outputs[batch_idx])
-        fetch_output, fetch_labels, fetch_label_weights, fetch_softmax, fetch_loss, _ = sess.run(
-            [output, labels_batched, target_weights, softmax_outputs, loss, train_step],
+        fetch_output, fetch_labels, fetch_label_weights, fetch_softmax, fetch_loss, fetch_grad_vars, _ = sess.run(
+            [output, labels_batched, target_weights, softmax_outputs, loss, grads_and_vars, train_step],
             feed_dict={
                 input_placeholder: batch_input,
                 target_placeholder: batch_output,
