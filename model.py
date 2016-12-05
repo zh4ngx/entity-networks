@@ -11,7 +11,7 @@ HIDDEN_SIZE = 10
 NUM_BATCH = TOTAL_SEQ // (SEQ_LEN * BATCH_SIZE)
 LEARNING_RATE_START = 1e-1
 LEARNING_RATE_MIN = 1e-6
-LEARNING_RATE_CUT_EPOCH = 10
+LEARNING_RATE_CUT_EPOCH = 3
 NUM_EPOCH = 100
 random_digits = [random.randint(0, 3) for i in range(TOTAL_SEQ)]
 random_inputs = np.zeros([NUM_BATCH, BATCH_SIZE, SEQ_LEN, 10])
@@ -24,7 +24,7 @@ for batch_idx in range(NUM_BATCH):
             random_inputs[batch_idx, example_idx, seq_idx, label] = 1
             random_outputs[batch_idx, example_idx, seq_idx] = label
 
-rnn_cell = BasicRNNCell(10, activation=tf.sigmoid)
+rnn_cell = BasicRNNCell(10)
 
 
 def make_batch(raw_batch_inputs, raw_batch_outputs):
