@@ -4,10 +4,10 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.ops.rnn_cell import BasicRNNCell
 
-SEQ_LEN = 2
+SEQ_LEN = 5
 BATCH_SIZE = 10
 TOTAL_SEQ = 100000
-HIDDEN_SIZE = 10
+HIDDEN_SIZE = 32
 NUM_BATCH = TOTAL_SEQ // (SEQ_LEN * BATCH_SIZE)
 LEARNING_RATE_START = 1e-1
 LEARNING_RATE_MIN = 1e-6
@@ -24,7 +24,7 @@ for batch_idx in range(NUM_BATCH):
             random_inputs[batch_idx, example_idx, seq_idx, label] = 1
             random_outputs[batch_idx, example_idx, seq_idx] = label
 
-rnn_cell = BasicRNNCell(10)
+rnn_cell = BasicRNNCell(HIDDEN_SIZE)
 
 
 def make_batch(raw_batch_inputs, raw_batch_outputs):
@@ -34,7 +34,7 @@ def make_batch(raw_batch_inputs, raw_batch_outputs):
     return xs, ys
 
 
-input_placeholder = tf.placeholder(dtype=tf.float32, shape=[None, SEQ_LEN - 1, HIDDEN_SIZE], name="input")
+input_placeholder = tf.placeholder(dtype=tf.float32, shape=[None, SEQ_LEN - 1, 10], name="input")
 
 target_placeholder = tf.placeholder(dtype=tf.int32, shape=[None, SEQ_LEN - 1], name="target")
 learning_rate_placeholder = tf.placeholder(dtype=tf.float32, shape=None)
@@ -44,16 +44,18 @@ state = rnn_cell.zero_state(BATCH_SIZE, dtype=tf.float32)
 states = []
 
 with tf.variable_scope("RNN"):
+    with tf.variable_scope("softmax"):
+        softmax_w = tf.get_variable("weight", shape=[HIDDEN_SIZE, 10])
+        softmax_b = tf.get_variable("bias", shape=[10])
     for time_step in range(SEQ_LEN - 1):
-        # if time_step > 0:
-        #     tf.get_variable_scope().reuse_variables()
+        if time_step > 0:
+            tf.get_variable_scope().reuse_variables()
 
         (cell_output, state) = rnn_cell(input_placeholder[:, time_step, :], state)
-        states.append(state)
-        outputs.append(cell_output)
+        logits = tf.matmul(cell_output, softmax_w) + softmax_b
+        outputs.append(logits)
 
-    output = tf.reshape(tf.concat(1, outputs), [-1, HIDDEN_SIZE])
-    cell_states = tf.reshape(tf.concat(1, states), [-1, HIDDEN_SIZE])
+    output = tf.reshape(tf.concat(1, outputs), [-1, 10])
 
     labels_batched = tf.reshape(target_placeholder, [-1])
     target_weights = tf.ones([BATCH_SIZE * (SEQ_LEN - 1)])
@@ -84,14 +86,14 @@ for epoch_idx in range(NUM_EPOCH):
         break
     for batch_idx in range(NUM_BATCH):
         batch_input, batch_output = make_batch(random_inputs[batch_idx], random_outputs[batch_idx])
-        fetch_output, fetch_labels, fetch_label_weights, fetch_softmax, fetch_loss, fetch_grad_vars, _ = sess.run(
-            [output, labels_batched, target_weights, softmax_outputs, loss, grads_and_vars, train_step],
+        fetch_output, fetch_labels, fetch_softmax, fetch_loss, fetch_grad_vars, _ = sess.run(
+            [output, labels_batched, softmax_outputs, loss, grads_and_vars, train_step],
             feed_dict={
                 input_placeholder: batch_input,
                 target_placeholder: batch_output,
                 learning_rate_placeholder: learning_rate}
         )
-    if best_loss * 0.9999 < fetch_loss:
+    if best_loss * 0.99 < fetch_loss:
         print("Current loss ", fetch_loss, "was not significantly better than best loss of", best_loss)
         epochs_without_improvement += 1
         print("Now at", epochs_without_improvement, "epoch(s) without improvement out of", LEARNING_RATE_CUT_EPOCH)
