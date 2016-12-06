@@ -93,6 +93,7 @@ epochs_without_improvement = 0
 
 for epoch_idx in range(NUM_EPOCH):
     if epochs_without_improvement >= LEARNING_RATE_CUT_EPOCH:
+        epochs_without_improvement = 0
         learning_rate /= 10
         print("Cutting learning rate to", learning_rate)
     if learning_rate <= LEARNING_RATE_MIN:
