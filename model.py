@@ -4,26 +4,22 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.ops.rnn_cell import BasicRNNCell
 
-SEQ_LEN = 5
-BATCH_SIZE = 10
-TOTAL_SEQ = 100000
+SEQ_LEN = 10
+BATCH_SIZE = 32
 VOCABULARY_SIZE = 10
-HIDDEN_SIZE = 32
-NUM_BATCH = TOTAL_SEQ // (SEQ_LEN * BATCH_SIZE)
+HIDDEN_SIZE = 8
+NUM_BATCH = 1024
 LEARNING_RATE_START = 1e-2
 LEARNING_RATE_MIN = 1e-6
 LEARNING_RATE_CUT_EPOCH = 3
 NUM_EPOCH = 100
-random_digits = [random.randint(0, 3) for i in range(TOTAL_SEQ)]
 random_data = np.zeros([NUM_BATCH, BATCH_SIZE, SEQ_LEN], dtype=np.int32)
 
 for batch_idx in range(NUM_BATCH):
     for example_idx in range(BATCH_SIZE):
         for seq_idx in range(SEQ_LEN):
-            label = random_digits.pop()
+            label = random.randint(0, 3)
             random_data[batch_idx, example_idx, seq_idx] = label
-
-rnn_cell = BasicRNNCell(HIDDEN_SIZE)
 
 
 def make_batch(random_batch):
@@ -32,6 +28,8 @@ def make_batch(random_batch):
 
     return xs, ys
 
+
+rnn_cell = BasicRNNCell(HIDDEN_SIZE)
 
 input_placeholder = tf.placeholder(dtype=tf.int32, shape=[None, SEQ_LEN - 1], name="input")
 
