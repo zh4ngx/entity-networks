@@ -50,8 +50,12 @@ with tf.variable_scope("RNN"):
             initializer=tf.random_normal_initializer()
         )
     with tf.variable_scope("softmax"):
-        softmax_w = tf.get_variable("weight", shape=[HIDDEN_SIZE, VOCABULARY_SIZE])
-        softmax_b = tf.get_variable("bias", shape=[VOCABULARY_SIZE])
+        softmax_w = tf.get_variable(
+            "weight",
+            shape=[HIDDEN_SIZE, VOCABULARY_SIZE],
+            initializer=tf.random_normal_initializer()
+        )
+        softmax_b = tf.get_variable("bias", shape=[VOCABULARY_SIZE], initializer=tf.constant_initializer(0.1))
     for time_step in range(SEQ_LEN - 1):
         if time_step > 0:
             tf.get_variable_scope().reuse_variables()
@@ -97,7 +101,8 @@ for epoch_idx in range(NUM_EPOCH):
             feed_dict={
                 input_placeholder: batch_input,
                 target_placeholder: batch_output,
-                learning_rate_placeholder: learning_rate}
+                learning_rate_placeholder: learning_rate,
+            }
         )
     if best_loss * 0.999 < fetch_loss:
         print("Current loss ", fetch_loss, "was not significantly better than best loss of", best_loss)
