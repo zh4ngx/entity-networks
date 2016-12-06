@@ -66,8 +66,10 @@ with tf.variable_scope("RNN"):
         (cell_output, state) = rnn_cell(digit_embeddings, state)
         logits = tf.matmul(cell_output, softmax_w) + softmax_b
         outputs.append(logits)
+        states.append(state)
 
     output = tf.reshape(tf.concat(1, outputs), [-1, VOCABULARY_SIZE])
+    hidden_states = tf.reshape(tf.concat(1, states), [-1, SEQ_LEN - 1, HIDDEN_SIZE])
 
     labels_batched = tf.reshape(target_placeholder, [-1])
     target_weights = tf.ones([BATCH_SIZE * (SEQ_LEN - 1)])
@@ -98,8 +100,8 @@ for epoch_idx in range(NUM_EPOCH):
         break
     for batch_idx in range(NUM_BATCH):
         batch_input, batch_output = make_batch(random_data[batch_idx])
-        fetch_output, fetch_labels, fetch_softmax, fetch_loss, fetch_grad_vars, _ = sess.run(
-            [output, labels_batched, softmax_outputs, loss, grads_and_vars, train_step],
+        fetch_output, fetch_labels, fetch_softmax, fetch_states, fetch_loss, fetch_grad_vars, _ = sess.run(
+            [output, labels_batched, softmax_outputs, hidden_states, loss, grads_and_vars, train_step],
             feed_dict={
                 input_placeholder: batch_input,
                 target_placeholder: batch_output,
