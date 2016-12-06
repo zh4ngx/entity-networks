@@ -7,7 +7,7 @@ from tensorflow.python.ops.rnn_cell import BasicRNNCell
 SEQ_LEN = 10
 BATCH_SIZE = 32
 VOCABULARY_SIZE = 10
-HIDDEN_SIZE = 8
+HIDDEN_SIZE = 2
 NUM_BATCH = 1024
 LEARNING_RATE_START = 1e-2
 LEARNING_RATE_MIN = 1e-6
@@ -17,8 +17,12 @@ random_data = np.zeros([NUM_BATCH, BATCH_SIZE, SEQ_LEN], dtype=np.int32)
 
 for batch_idx in range(NUM_BATCH):
     for example_idx in range(BATCH_SIZE):
+        repeated_digit = random.randint(0, 3)
         for seq_idx in range(SEQ_LEN):
-            label = random.randint(0, 3)
+            if seq_idx % 3 == 0:
+                label = repeated_digit
+            else:
+                label = 0
             random_data[batch_idx, example_idx, seq_idx] = label
 
 
@@ -68,7 +72,7 @@ with tf.variable_scope("RNN"):
     labels_batched = tf.reshape(target_placeholder, [-1])
     target_weights = tf.ones([BATCH_SIZE * (SEQ_LEN - 1)])
 
-    softmax_outputs = tf.nn.softmax(output)
+    softmax_outputs = tf.reshape(tf.nn.softmax(output), [-1, SEQ_LEN - 1, VOCABULARY_SIZE])
     loss = tf.nn.seq2seq.sequence_loss(
         [output],
         [labels_batched],
