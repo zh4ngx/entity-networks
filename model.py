@@ -2,24 +2,25 @@ import random
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.ops.rnn_cell import BasicRNNCell
+from tensorflow.python.ops.rnn_cell import GRUCell
 
-SEQ_LEN = 10
+SEQ_LEN = 48
 BATCH_SIZE = 32
 VOCABULARY_SIZE = 10
-HIDDEN_SIZE = 2
+HIDDEN_SIZE = 4
 NUM_BATCH = 1024
 LEARNING_RATE_START = 1e-2
 LEARNING_RATE_MIN = 1e-6
 LEARNING_RATE_CUT_EPOCH = 3
 NUM_EPOCH = 100
+NUM_ZEROS = 16
 random_data = np.zeros([NUM_BATCH, BATCH_SIZE, SEQ_LEN], dtype=np.int32)
 
 for batch_idx in range(NUM_BATCH):
     for example_idx in range(BATCH_SIZE):
-        repeated_digit = random.randint(0, 3)
+        repeated_digit = random.randint(0, 9)
         for seq_idx in range(SEQ_LEN):
-            if seq_idx % 3 == 0:
+            if seq_idx % NUM_ZEROS == 0:
                 label = repeated_digit
             else:
                 label = 0
@@ -33,7 +34,7 @@ def make_batch(random_batch):
     return xs, ys
 
 
-rnn_cell = BasicRNNCell(HIDDEN_SIZE)
+rnn_cell = GRUCell(HIDDEN_SIZE)
 
 input_placeholder = tf.placeholder(dtype=tf.int32, shape=[None, SEQ_LEN - 1], name="input")
 
