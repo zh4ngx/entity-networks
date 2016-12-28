@@ -69,14 +69,14 @@ with tf.variable_scope("RNN"):
         outputs.append(logits)
         states.append(state)
 
-    output = tf.reshape(tf.concat(1, outputs), [-1, VOCABULARY_SIZE])
-    hidden_states = tf.reshape(tf.concat(1, states), [-1, SEQ_LEN - 1, HIDDEN_SIZE])
+    output = tf.reshape(tf.concat_v2(outputs, axis=1), [-1, VOCABULARY_SIZE])
+    hidden_states = tf.reshape(tf.concat_v2(states, axis=1), [-1, SEQ_LEN - 1, HIDDEN_SIZE])
 
     labels_batched = tf.reshape(target_placeholder, [-1])
     target_weights = tf.ones([BATCH_SIZE * (SEQ_LEN - 1)])
 
     softmax_outputs = tf.reshape(tf.nn.softmax(output), [-1, SEQ_LEN - 1, VOCABULARY_SIZE])
-    loss = tf.nn.seq2seq.sequence_loss(
+    loss = tf.contrib.legacy_seq2seq.sequence_loss(
         [output],
         [labels_batched],
         [target_weights])
