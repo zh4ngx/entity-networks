@@ -3,8 +3,9 @@ import random
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.ops.rnn_cell import GRUCell
+from cell import HadamardGRUCell
 
-SEQ_LEN = 48
+SEQ_LEN = 32
 BATCH_SIZE = 32
 VOCABULARY_SIZE = 10
 HIDDEN_SIZE = 4
@@ -13,7 +14,7 @@ LEARNING_RATE_START = 1e-2
 LEARNING_RATE_MIN = 1e-6
 LEARNING_RATE_CUT_EPOCH = 3
 NUM_EPOCH = 100
-NUM_ZEROS = 16
+NUM_ZEROS = 8
 random_data = np.zeros([NUM_BATCH, BATCH_SIZE, SEQ_LEN], dtype=np.int32)
 
 for batch_idx in range(NUM_BATCH):
@@ -34,7 +35,7 @@ def make_batch(random_batch):
     return xs, ys
 
 
-rnn_cell = GRUCell(HIDDEN_SIZE)
+rnn_cell = HadamardGRUCell(HIDDEN_SIZE)
 
 input_placeholder = tf.placeholder(dtype=tf.int32, shape=[None, SEQ_LEN - 1], name="input")
 
