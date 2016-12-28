@@ -51,12 +51,12 @@ class HadamardGRUCell(RNNCell):
                 reset_gate = sigmoid(
                     tf.matmul(inputs, w_r) +
                     tf.matmul(state, u_r) +
-                    tf.matmul(inputs, w_r) * tf.matmul(state, u_r) +
+                    tf.matmul(inputs, w_r) * state +
                     b_r)
                 update_gate = sigmoid(
                     tf.matmul(inputs, w_z) +
                     tf.matmul(state, u_z) +
-                    tf.matmul(inputs, w_z) * tf.matmul(state, u_z) +
+                    tf.matmul(inputs, w_z) * state +
                     b_z)
 
             with vs.variable_scope("candidate"):
